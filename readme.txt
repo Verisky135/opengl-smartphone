@@ -1,3 +1,3 @@
 How to compile 
 
-$ g++ -o cube cube2.cpp -lglut -lGLU -lGL
+$ g++ -o cube cube.cpp -lglut -lGLU -lGL
