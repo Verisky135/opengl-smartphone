@@ -23,7 +23,7 @@ int window;
 float xrot, yrot, zrot;
 
 /* storage for one texture  */
-int texture[1];
+int texture[3];
 
 /* Image type - contains height, width, and data */
 struct Image {
@@ -53,11 +53,18 @@ int ImageLoad(char *filename, Image *image) {
     // seek through the bmp header, up to the width/height:
     fseek(file, 18, SEEK_CUR);
 
-    // read the width
-    if ((i = fread(&image->sizeX, 4, 1, file)) != 1) {
+    char buf[4];
+	// read the width
+	if ((i = fread(buf, 4, 1, file)) != 1) {
 	printf("Error reading width from %s.\n", filename);
 	return 0;
-    }
+	}
+	image->sizeX = 
+		 ((unsigned long)buf[0]) |
+		(((unsigned long)buf[1])<<8) |
+		(((unsigned long)buf[2])<<16)|
+		(((unsigned long)buf[3])<<24);
+
     printf("Width of %s: %lu\n", filename, image->sizeX);
     
     // read the height 
@@ -141,6 +148,54 @@ void LoadGLTextures() {
     // 2d texture, level of detail 0 (normal), 3 components (red, green, blue), x size from image, y size from image, 
     // border 0 (normal), rgb color data, unsigned byte data, and finally the data itself.
     glTexImage2D(GL_TEXTURE_2D, 0, 3, image1->sizeX, image1->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image1->data);
+    
+    Image *image2;
+    
+    // allocate space for texture
+    image2 = (Image *) malloc(sizeof(Image));
+    if (image2 == NULL) {
+	printf("Error allocating space for image");
+	exit(0);
+    }
+
+    if (!ImageLoad("Data/iphone/back.bmp", image2)) {
+	exit(1);
+    }        
+
+    // Create Texture	
+    glGenTextures(1, &texture[1]);
+    glBindTexture(GL_TEXTURE_2D, texture[1]);   // 2d texture (x and y size)
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR); // scale linearly when image bigger than texture
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // scale linearly when image smalled than texture
+
+    // 2d texture, level of detail 0 (normal), 3 components (red, green, blue), x size from image, y size from image, 
+    // border 0 (normal), rgb color data, unsigned byte data, and finally the data itself.
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, image2->sizeX, image2->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image2->data);
+    
+    Image *image3;
+    
+    // allocate space for texture
+    image3 = (Image *) malloc(sizeof(Image));
+    if (image3 == NULL) {
+	printf("Error allocating space for image");
+	exit(0);
+    }
+
+    if (!ImageLoad("Data/iphone/side.bmp", image3)) {
+	exit(1);
+    }        
+
+    // Create Texture	
+    glGenTextures(1, &texture[2]);
+    glBindTexture(GL_TEXTURE_2D, texture[2]);   // 2d texture (x and y size)
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR); // scale linearly when image bigger than texture
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); // scale linearly when image smalled than texture
+
+    // 2d texture, level of detail 0 (normal), 3 components (red, green, blue), x size from image, y size from image, 
+    // border 0 (normal), rgb color data, unsigned byte data, and finally the data itself.
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, image3->sizeX, image3->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, image3->data);
 };
 
 /* A general OpenGL initialization function.  Sets all of the initial parameters. */
@@ -199,12 +254,19 @@ void DrawGLScene()
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.9f,  1.7f,  0.1f);	// Top Right Of The Texture and Quad
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.9f,  1.7f,  0.1f);	// Top Left Of The Texture and Quad
     
+    glEnd();                                    // done with the polygon.
+
+	glBindTexture(GL_TEXTURE_2D, texture[1]);   // choose the texture to use.
+	glBegin(GL_QUADS);
     // Back Face
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.9f, -1.7f, -0.1f);	// Bottom Right Of The Texture and Quad
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.9f,  1.7f, -0.1f);	// Top Right Of The Texture and Quad
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.9f,  1.7f, -0.1f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.9f, -1.7f, -0.1f);	// Bottom Left Of The Texture and Quad
+	glEnd();
 	
+	glBindTexture(GL_TEXTURE_2D, texture[2]);   // choose the texture to use.
+	glBegin(GL_QUADS);
     // Top Face
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.9f,  1.7f, -0.1f);	// Top Left Of The Texture and Quad
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.9f,  1.7f,  0.1f);	// Bottom Left Of The Texture and Quad
@@ -228,8 +290,8 @@ void DrawGLScene()
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.9f, -1.7f,  0.1f);	// Bottom Right Of The Texture and Quad
     glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.9f,  1.7f,  0.1f);	// Top Right Of The Texture and Quad
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.9f,  1.7f, -0.1f);	// Top Left Of The Texture and Quad
-    
-    glEnd();                                    // done with the polygon.
+	
+	glEnd(); 
 
     yrot+=0.5f;		                // Y Axis Rotation
 
