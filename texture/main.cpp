@@ -151,25 +151,26 @@ int main( void )
 	// Two UV coordinatesfor each vertex. They were created withe Blender.
 	static const GLfloat g_uv_buffer_data[] = { 
 
-		0.0f, 0.0f, // I
-		0.0f, 0.0f,
-		0.0f, 0.0f,
 
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
+		0.95f, 1.0f, // I
+		1.0f, 1.0f,
+		1.0f, 0.0f, 
+
+		0.95f, 1.0f,
+		0.96f, 0.0f,
+		1.0f, 0.0f,
 
 		0.0f, 0.0f, // II
 		0.0f, 0.0f,
 		0.0f, 0.0f,
 
-		0.0f, 0.0f,
+		0.0f, 0.0f, 
 		0.0f, 0.0f,
 		0.0f, 0.0f,
 
-		0.95f, 1.0f,
+		0.95f, 1.0f, // III
 		0.95f, 0.0f,
-		0.475f, 0.0f, // III
+		0.475f, 0.0f, 
 
 		0.95f, 1.0f,
 		0.475f, 1.0f,
@@ -183,13 +184,13 @@ int main( void )
 		0.0f, 0.0f,
 		0.0f, 0.0f,
 
-		0.0f, 0.0f, // V
-		0.0f, 0.0f,
-		0.0f, 0.0f,
+		0.95f, 0.0f, 
+		0.95f, 1.0f, // V
+		1.0f, 1.0f,
 
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
+		0.95f, 0.0f, 
+		1.0f, 0.0f, // V
+		1.0f, 1.0f,
 		
 		0.475f, 0.0f, // VI
 		0.0f, 0.0f,
@@ -213,6 +214,10 @@ int main( void )
 
     float moveCubeX = 0.0f;
     float moveCubeY = 0.25f;
+    float scaledelta = 0.0f;
+    float scale = 1.55f;
+    float scale2 = 0.0f;
+
 	do{
 
 
@@ -224,11 +229,16 @@ int main( void )
                                      0.0f, 1.0f, 0.0f, 0.0f,
                                      -sin(moveCubeY), 0.0f, cos(moveCubeY), 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f};
+        float scaleme[16] = {scale2, 0.0f, 0.0f, 0.0f,
+                                     0.0f, scale2, 0.0f, 0.0f,
+                                     0.0f, 0.0f, scale2, 0.0f,
+                                     0.0f, 0.0f, 0.0f, 1.0f};
         glm::mat4 roty = glm::make_mat4(yRotationMatrix);
         glm::mat4 rotz = glm::make_mat4(zRotationMatrix);
+        glm::mat4 scc = glm::make_mat4(scaleme);
 
 		// Our ModelViewProjection : multiplication of our 3 matrices
-		glm::mat4 MVP        = Projection * View * Model * rotz * roty; // Remember, matrix multiplication is the other way around
+		glm::mat4 MVP        = Projection * View * Model * rotz * roty * scc; // Remember, matrix multiplication is the other way around
 
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -282,6 +292,19 @@ int main( void )
 
         moveCubeX += 0.01f;
         moveCubeY += 0.005f;
+        if(scale < 2.0f && scale > 1.5f)
+        	scaledelta = -0.01f;
+
+        if(scale > -2.0f && scale < -1.5f)
+        	scaledelta = +0.01f;
+
+        if(scale2 < 0.5f && scale2 > -0.5f)
+        	scale2 = 0.5;
+        else
+        	scale2 = scale;
+
+        
+        scale += scaledelta;
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
