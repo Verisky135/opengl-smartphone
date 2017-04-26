@@ -19,6 +19,7 @@ using namespace glm;
 
 #include "common/shader.hpp"
 #include "common/controls.hpp"
+#include "common/texture.hpp"
 
 
 const float E  = 4.0f / 5.0f;
@@ -211,6 +212,7 @@ int main(){
                            );
 
     float moveCubeX = 0.0f;
+    float moveCubeY = 0.25f;
 
     float sudut = PI / 2;
 
@@ -243,13 +245,19 @@ int main(){
                                      0.0f, 0.0f, 1.0f, 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f};
 
+        float yRotationMatrix[16] = {cos(moveCubeY), 0.0f, sin(moveCubeY), 0.0f,
+                                     0.0f, 1.0f, 0.0f, 0.0f,
+                                     -sin(moveCubeY), 0.0f, cos(moveCubeY), 0.0f,
+                                     0.0f, 0.0f, 0.0f, 1.0f};
+
         glm::mat4 rotz = glm::make_mat4(zRotationMatrix);
+        glm::mat4 roty = glm::make_mat4(yRotationMatrix);
 
 
         // Model matrix : an identity matrix (model will be at the origin)
         glm::mat4 Model      = glm::mat4(1.0f);
         // Our ModelViewProjection : multiplication of our 3 matrices
-        glm::mat4 MVP        = Projection * View * Model * rotz; // Remember, matrix multiplication is the other way around
+        glm::mat4 MVP        = Projection * View * Model * rotz * roty; // Remember, matrix multiplication is the other way around
 
         // Send our transformation to the currently bound shader,
         // in the "MVP" uniform
@@ -297,7 +305,7 @@ int main(){
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        moveCubeX += 0.07f;
+        moveCubeX += 0.02f;
 
     } // Check if the ESC key was pressed or the window was closed
     while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
